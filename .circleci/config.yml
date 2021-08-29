@@ -37,6 +37,6 @@ jobs:
       - setup_remote_docker
       # build and push Docker image
       - run: |
-          docker build -t OrangeCountyLettings/app:$CIRCLE_SHA1 .
+          docker build -t yoanberchel/orange-county-lettings:$CIRCLE_SHA1 .
           echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-          docker push OrangeCountyLettings/app:$CIRCLE_SHA1
+          docker push yoanberchel/orange-county-lettings:$CIRCLE_SHA1
