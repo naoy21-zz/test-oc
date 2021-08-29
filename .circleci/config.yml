@@ -7,6 +7,12 @@ workflows:
   main:
     jobs:
       - build-test-linting
+      - containerization:
+          requires:
+            - build-test-linting
+          filters:
+            branches:
+              only: main
 
 
 jobs:
@@ -23,3 +29,14 @@ jobs:
       - run:
           name: Run linting
           command: flake8
+  containerization:
+    docker:
+      - image: cimg/python:3.9.6
+    steps:
+      - checkout
+      - setup_remote_docker
+      # build and push Docker image
+      - run: |
+          docker build -t OrangeCountyLettings/app:$CIRCLE_SHA1 .
+          echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+          docker push OrangeCountyLettings/app:$CIRCLE_SHA1
