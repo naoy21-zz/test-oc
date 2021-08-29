@@ -13,6 +13,12 @@ workflows:
           filters:
             branches:
               only: main
+      - deploy:
+          requires:
+            - containerization
+          filters:
+            branches:
+              only: main
 
 
 jobs:
@@ -35,8 +41,20 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      # build and push Docker image
-      - run: |
-          docker build -t yoanberchel/orange-county-lettings:$CIRCLE_SHA1 .
-          echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-          docker push yoanberchel/orange-county-lettings:$CIRCLE_SHA1
+      - run:
+          name: Build and push Docker image to DockerHub
+          command: |
+            docker build -t yoanberchel/orange-county-lettings:$CIRCLE_SHA1 .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push yoanberchel/orange-county-lettings:$CIRCLE_SHA1
+  deploy:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Build, push and deploy Docker image to Heroku
+          command: |
+            sudo curl https://cli-assets.heroku.com/install.sh | sh
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push -a oc-lettings-5 web
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release -a oc-lettings-5 web
